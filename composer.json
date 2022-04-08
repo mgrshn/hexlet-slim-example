@@ -1,0 +1,19 @@
+{
+    "name": "maxim/hexlet-slim-example",
+    "description": "It is an Educational project, that learn to work with microframework Slim",
+    "type": "project",
+    "license": "nothing",
+    "authors": [
+        {
+            "name": "Grishin",
+            "email": "grishinma2009@yandex.ru"
+        }
+    ],
+    "require": {
+        "slim/slim": "^4.10",
+        "slim/psr7": "^1.5",
+        "slim/http": "^0.4.0",
+        "slim/php-view": "^3.1",
+        "php-di/php-di": "^6.3"
+    }
+}
