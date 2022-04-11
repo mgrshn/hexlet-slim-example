@@ -1,0 +1,9 @@
+<?php foreach($users as $user): ?>
+    <?= htmlspecialchars($user) ?>
+<?php endforeach ?>
+
+<form action="/users" method="get">
+    <input type="search" required name="term" value="<?= htmlspecialchars($term) ?>" />
+</form>
+
+<a href="/users">all</a>
