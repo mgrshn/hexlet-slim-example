@@ -16,6 +16,43 @@ $app->addErrorMiddleware(true, true, true);
 
 $users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
 
+function isStorageEmpty(): bool
+{
+    return file_get_contents(__DIR__ . '/../storage/users.json') == false ? 1 : 0;
+}
+
+$app->get('/users/new', function ($request, $response) {
+    $params = [
+        'user' => ['name' => '', 'email' => ''],
+        'errors' => []
+    ];
+    return $this->get('renderer')->render($response, '/users/new.phtml', $params);
+});
+
+$app->post('/users', function ($request, $response) {
+    $user = $request->getParsedBody('user');
+    $id = rand(1, 1000);
+    $user['id'] = $id;
+    //проверка на пустоту в storage
+    if (isStorageEmpty()) {
+        file_put_contents(
+        __DIR__ . '/../storage/users.json',
+        json_encode(array())
+        );
+    }
+
+    $allUsers = json_decode(file_get_contents(
+        __DIR__ . '/../storage/users.json'
+    ), true);
+    $allUsers[] = $user;
+    file_put_contents(
+        __DIR__ . '/../storage/users.json',
+        json_encode($allUsers),
+    );
+
+    return $response->withStatus(302)->withHeader('Location', '/users');
+});
+
 $app->get('/users/{id}', function ($request, $response, $args) {
     $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
     // Указанный путь считается относительно базовой директории для шаблонов, заданной на этапе конфигурации
@@ -39,9 +76,9 @@ $app->get('/users', function ($request, $response) use ($users) {
     return $this->get('renderer')->render($response, '/users/index.phtml', $params);
 });
 
-$app->post('/users', function ($request, $response) {
+/*$app->post('/users', function ($request, $response) {
     return $response->withStatus(302);
-});
+});*/
 
 $app->get('/courses/{id}', function ($request, $response, array $args) {
     print_r($args);
@@ -49,6 +86,8 @@ $app->get('/courses/{id}', function ($request, $response, array $args) {
     $response->getBody()->write("Course id is {$id}");
     return $response;
 });
+
+
 
 
 $app->run();
