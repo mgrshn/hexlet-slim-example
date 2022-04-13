@@ -1,9 +1,10 @@
 <?php foreach($users as $user): ?>
-    <?= htmlspecialchars($user) ?>
+    <div><?= htmlspecialchars($user['name']) ?></div>
 <?php endforeach ?>
 
 <form action="/users" method="get">
     <input type="search" required name="term" value="<?= htmlspecialchars($term) ?>" />
 </form>
 
-<a href="/users">all</a>
+<a href="/users">All users</a> 
+<a href="/users/new">New user</a> 

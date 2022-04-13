@@ -5,6 +5,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
 use DI\Container;
+use App\Storage;
+use App\IdGenerator;
 
 $container = new Container();
 $container->set('renderer', function () {
@@ -14,7 +16,7 @@ $container->set('renderer', function () {
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 
-$users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
+$usersStorage = new Storage();
 
 function isStorageEmpty(): bool
 {
@@ -29,28 +31,14 @@ $app->get('/users/new', function ($request, $response) {
     return $this->get('renderer')->render($response, '/users/new.phtml', $params);
 });
 
-$app->post('/users', function ($request, $response) {
-    $user = $request->getParsedBody('user');
-    $id = rand(1, 1000);
+$app->post('/users', function ($request, $response) use ($usersStorage) {
+    $user = $request->getParsedBody('user')['user'];
+    var_dump($user);
+    $id = IdGenerator::generateId();
     $user['id'] = $id;
-    //проверка на пустоту в storage
-    if (isStorageEmpty()) {
-        file_put_contents(
-        __DIR__ . '/../storage/users.json',
-        json_encode(array())
-        );
-    }
+    $usersStorage->addUser($user);
 
-    $allUsers = json_decode(file_get_contents(
-        __DIR__ . '/../storage/users.json'
-    ), true);
-    $allUsers[] = $user;
-    file_put_contents(
-        __DIR__ . '/../storage/users.json',
-        json_encode($allUsers),
-    );
-
-    return $response->withStatus(302)->withHeader('Location', '/users');
+    return $response->withStatus(302)->withHeader('Location', '#');
 });
 
 $app->get('/users/{id}', function ($request, $response, $args) {
@@ -66,9 +54,10 @@ $app->get('/', function ($request, $response) {
     return $response;
 });
 
-$app->get('/users', function ($request, $response) use ($users) {
+$app->get('/users', function ($request, $response) use ($usersStorage) {
     $term = $request->getQueryParams();
-    $filteredUsers = array_filter($users, fn($user) => str_contains($user, $term['term']));
+    $users = $usersStorage->getUsers();
+    $filteredUsers = array_filter($users, fn($user) => str_contains($user['name'], $term['term']));
     $params = [
         'users' => $filteredUsers,
         'term' => $term['term']
@@ -76,18 +65,11 @@ $app->get('/users', function ($request, $response) use ($users) {
     return $this->get('renderer')->render($response, '/users/index.phtml', $params);
 });
 
-/*$app->post('/users', function ($request, $response) {
-    return $response->withStatus(302);
-});*/
-
 $app->get('/courses/{id}', function ($request, $response, array $args) {
     print_r($args);
     $id = $args['id'];
     $response->getBody()->write("Course id is {$id}");
     return $response;
 });
-
-
-
 
 $app->run();
