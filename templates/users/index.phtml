@@ -1,5 +1,5 @@
 <?php foreach($users as $user): ?>
-    <div><?= htmlspecialchars($user['name']) ?></div>
+    <div><a href="/users/<?=$user['id']?>"><?= htmlspecialchars($user['name']) ?></a></div>
 <?php endforeach ?>
 
 <form action="/users" method="get">

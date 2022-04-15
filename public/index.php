@@ -33,12 +33,11 @@ $app->get('/users/new', function ($request, $response) {
 
 $app->post('/users', function ($request, $response) use ($usersStorage) {
     $user = $request->getParsedBody('user')['user'];
-    var_dump($user);
     $id = IdGenerator::generateId();
     $user['id'] = $id;
     $usersStorage->addUser($user);
 
-    return $response->withStatus(302)->withHeader('Location', '#');
+    return $response->withStatus(302)->withHeader('Location', '/users');
 })->setName('toUsersAfterCreate');
 
 $app->get('/users/{id}', function ($request, $response, $args) use ($usersStorage) {
@@ -71,7 +70,7 @@ $params = ['id' => $args['id'], 'nickname' => $currentUserName];
 $router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) use ($router) {
-    $router->urlFor('user', ['id' => 'id']);
+    //$router->urlFor('user', ['id' => 'id']);
     $response->getBody()->write("welcome to Slim!");
     return $response;
 })->setName('startPage');
