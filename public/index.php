@@ -7,10 +7,16 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use App\Storage;
 use App\IdGenerator;
+use App\Validator;
+
+session_start();
 
 $container = new Container();
 $container->set('renderer', function () {
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+});
+$container->set('flash', function() {
+    return new \Slim\Flash\Messages();
 });
 
 $app = AppFactory::createFromContainer($container);
@@ -32,12 +38,23 @@ $app->get('/users/new', function ($request, $response) {
 })->setName('createNewUser');
 
 $app->post('/users', function ($request, $response) use ($usersStorage) {
+    //$validator = new Validator();
     $user = $request->getParsedBody('user')['user'];
-    $id = IdGenerator::generateId();
-    $user['id'] = $id;
-    $usersStorage->addUser($user);
+    $errors = Validator::validate($user);
+    if (count($errors) === 0) {
+        $id = IdGenerator::generateId();
+        $user['id'] = $id;
+        $usersStorage->addUser($user);
+        $this->get('flash')->addMessage('success', 'User added');
+    
+        return $response->withStatus(302)->withHeader('Location', '/users');
+    }
 
-    return $response->withStatus(302)->withHeader('Location', '/users');
+    $params = [
+        'errors' => $errors,
+        'user' => $user
+    ];
+    return $this->get('renderer')->render($response->withStatus(422), '/users/new.phtml', $params);
 })->setName('toUsersAfterCreate');
 
 $app->get('/users/{id}', function ($request, $response, $args) use ($usersStorage) {
@@ -79,9 +96,12 @@ $app->get('/users', function ($request, $response) use ($usersStorage) {
     $term = $request->getQueryParams();
     $users = $usersStorage->getUsers();
     $filteredUsers = array_filter($users, fn($user) => str_contains($user['name'], $term['term']));
+    $messages = $this->get('flash')->getMessages();
+    //print_r($messages);
     $params = [
         'users' => $filteredUsers,
-        'term' => $term['term']
+        'term' => $term['term'],
+        'flash' => $messages
     ];
     return $this->get('renderer')->render($response, '/users/index.phtml', $params);
 })->setName('getAllUsers');

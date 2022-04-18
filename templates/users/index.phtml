@@ -1,10 +1,24 @@
+<?php if(!empty($flash)): ?>
+    <ul>
+    <?php foreach($flash['success'] as $successMessage): ?>
+    <li><font color="green"><?= $successMessage ?></font></li> 
+    <?php endforeach ?>
+    </ul>
+<?php endif ?>
+
+<form action="/users" method="get">
+    <label> Search
+        <input type="search" required name="term" value="<?= htmlspecialchars($term) ?>" />
+    </label>
+</form>
+
+
+
 <?php foreach($users as $user): ?>
     <div><a href="/users/<?=$user['id']?>"><?= htmlspecialchars($user['name']) ?></a></div>
 <?php endforeach ?>
 
-<form action="/users" method="get">
-    <input type="search" required name="term" value="<?= htmlspecialchars($term) ?>" />
-</form>
 
+<br>
 <a href="/users">All users</a> 
 <a href="/users/new">New user</a> 
