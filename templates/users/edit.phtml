@@ -1,0 +1,24 @@
+<form action="/users/<?= $user['id'] ?>" method="post">
+    <input type="hidden" name="_METHOD" value="PATCH">
+    <div>
+        <div>
+            <label>
+                Name
+                <input type="text" name="user[name]" value="<?= htmlspecialchars($user['name']) ?? '' ?>">
+            </label>
+            <?php if (isset($errors['name'])): ?>
+                <label><font color="darkred"><?= $errors['name']; ?></font><label>
+            <?php endif ?>
+        </div>
+        <div>
+            <label>
+                Email
+                <input type="email" required name="user[email]" value="<?= htmlspecialchars($user['email']) ?? '' ?>">
+            </label>
+            <?php if (isset($errors['email'])): ?>
+                <label><font color="darkred"><?= $errors['email']; ?></font><label>
+            <?php endif ?>
+        </div>
+    </div>
+    <input type="submit" value="Update">   
+</form>

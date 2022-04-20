@@ -1,2 +1,10 @@
-<h1>Hello, <?= $nickname ?></h1>
-<h2>Your id: <?= $id ?></h2>
+<?php if(!empty($flash)): ?>
+    <ul>
+    <?php foreach($flash['success'] as $successMessage): ?>
+    <li><font color="green"><?= $successMessage ?></font></li> 
+    <?php endforeach ?>
+    </ul>
+<?php endif ?>
+
+<h1>Hello, <?= htmlspecialchars($nickname) ?></h1>
+<h2>Your id: <?= htmlspecialchars($id) ?></h2>

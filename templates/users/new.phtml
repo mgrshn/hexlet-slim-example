@@ -2,7 +2,7 @@
     <div>
         <label>
             Nickame
-            <input type="text" name="user[name]" value="<?= $user['name'] ?>">
+            <input type="text" name="user[name]" value="<?= htmlspecialchars($user['name']) ?>">
         </label>
             <?php if (isset($errors['name'])): ?>
             <label><font color="darkred"><?= $errors['name']; ?></font><label>
@@ -11,7 +11,7 @@
     <div>
         <label>
             Email
-            <input type="email" required name="user[email]" value="<?= $user['email'] ?>">
+            <input type="email" required name="user[email]" value="<?= htmlspecialchars($user['email']) ?>">
         </label>
             <?php if (isset($errors['email'])): ?>
             <label><font color="darkred"><?= $errors['email']; ?></font><label>

@@ -4,6 +4,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
+use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use App\Storage;
 use App\IdGenerator;
@@ -21,6 +22,7 @@ $container->set('flash', function() {
 
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
+$app->add(MethodOverrideMiddleware::class);
 
 $usersStorage = new Storage();
 
@@ -38,7 +40,7 @@ $app->get('/users/new', function ($request, $response) {
 })->setName('createNewUser');
 
 $app->post('/users', function ($request, $response) use ($usersStorage) {
-    //$validator = new Validator();
+
     $user = $request->getParsedBody('user')['user'];
     $errors = Validator::validate($user);
     if (count($errors) === 0) {
@@ -76,8 +78,13 @@ $app->get('/users/{id}', function ($request, $response, $args) use ($usersStorag
             continue;
         } 
     }
-
-$params = ['id' => $args['id'], 'nickname' => $currentUserName];
+    
+    $flash = $this->get('flash')->getMessages();
+    $params = [
+    'id' => $args['id'],
+    'nickname' => $currentUserName,
+    'flash' => $flash
+    ];
     // Указанный путь считается относительно базовой директории для шаблонов, заданной на этапе конфигурации
     // $this доступен внутри анонимной функции благодаря https://php.net/manual/ru/closure.bindto.php
     // $this в Slim это контейнер зависимостей
@@ -87,7 +94,7 @@ $params = ['id' => $args['id'], 'nickname' => $currentUserName];
 $router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) use ($router) {
-    //$router->urlFor('user', ['id' => 'id']);
+
     $response->getBody()->write("welcome to Slim!");
     return $response;
 })->setName('startPage');
@@ -97,7 +104,7 @@ $app->get('/users', function ($request, $response) use ($usersStorage) {
     $users = $usersStorage->getUsers();
     $filteredUsers = array_filter($users, fn($user) => str_contains($user['name'], $term['term']));
     $messages = $this->get('flash')->getMessages();
-    //print_r($messages);
+
     $params = [
         'users' => $filteredUsers,
         'term' => $term['term'],
@@ -112,5 +119,52 @@ $app->get('/courses/{id}', function ($request, $response, array $args) {
     $response->getBody()->write("Course id is {$id}");
     return $response;
 })->setName('courses');
+
+$app->get('/users/{id}/edit', function ($request, $response, array $args) use ($usersStorage) {
+    $id = (int) $args['id'];
+    $users = $usersStorage->getUsers();
+    if ($id > count($users)) {
+        $response->getBody()->write('This user not created yet :(');
+        return $response->withStatus(404);
+    }
+    foreach ($users as $userProps) {
+        if ($userProps['id'] === $id) {
+            $user = $userProps;
+        } else {
+            continue;
+        }
+    }
+    $params = [
+        'user' => $user,
+        'errors' => []
+    ];
+
+    return $this->get('renderer')->render($response, '/users/edit.phtml', $params);
+})->setName('editUser');
+
+$app->patch('/users/{id}', function ($request, $response, array $args) use ($usersStorage, $router) {
+    $id = (int) $args['id'];
+    $users = $usersStorage->getUsers();
+    if ($id > count($users)) {
+        $response->getBody()->write('This user not created yet :(');
+        return $response->withStatus(404);
+    }
+    $newUserProps = $request->getParsedBody('user')['user'];
+    $newUserProps['id'] = $id;
+    $errors = Validator::validate($newUserProps);
+    if (count($errors) === 0) {
+        $flash = $this->get('flash')->addMessage('success', 'User has been changed');
+        $usersStorage->changeUser($newUserProps);
+        $url = $router->urlFor('user', ['id' => $id]);
+        return $response->withStatus(302)->withHeader('Location', $url);
+    }
+    
+
+    $params = [
+        'user' => $newUserProps,
+        'errors' => $errors
+    ];
+    return $this->get('renderer')->render($response->withStatus(422), '/users/edit.phtml', $params);
+});
 
 $app->run();

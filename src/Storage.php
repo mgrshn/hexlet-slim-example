@@ -23,6 +23,24 @@ class Storage
         return $this->storageData;
     }
 
+
+    public function changeUser(array $newUser)
+    {
+        $users = $this->getUsers();
+        $user = $users['user'. (string) $newUser['id']];
+        if (isset($newUser['name']) && $newUser['name'] != '') {
+            $user['name'] = $newUser['name'];
+        }
+        if (isset($newUser['email']) && $newUser['email'] != '') {
+            $user['email'] = $newUser['email'];
+        }
+        $users['user'. (string) $newUser['id']] = $user;
+        print_r($user);
+        $this->storageData = $users;
+        file_put_contents(__DIR__ . '/../storage/users.json', json_encode($this->storageData));
+        //write logic here  
+    }
+
     public function addUser(array $user)
     {
         $users = $this->getUsers();
@@ -34,3 +52,8 @@ class Storage
 }
 
 
+/*$storage = new Storage();
+$users = $storage->getUsers();
+//print_r($users);
+$user = $users['user1'];
+print_r($storage->changeUser($user));*/
