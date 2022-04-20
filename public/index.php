@@ -102,7 +102,7 @@ $app->get('/', function ($request, $response) use ($router) {
 $app->get('/users', function ($request, $response) use ($usersStorage) {
     $term = $request->getQueryParams();
     $users = $usersStorage->getUsers();
-    $filteredUsers = array_filter($users, fn($user) => str_contains($user['name'], $term['term']));
+    $filteredUsers = array_filter($users, fn($user) => /*str_contains*/str_starts_with(strtolower($user['name']), strtolower($term['term'])));
     $messages = $this->get('flash')->getMessages();
 
     $params = [

@@ -8,3 +8,14 @@
 
 <h1>Hello, <?= htmlspecialchars($nickname) ?></h1>
 <h2>Your id: <?= htmlspecialchars($id) ?></h2>
+
+<div>
+    <label>
+        <a href="/users/<?= $id ?>/edit">Edit info</a>
+    </label>
+</div>
+<div>
+    <label>
+        <a href="/users">to all Users</a>
+    </label>
+</div>
