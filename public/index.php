@@ -59,14 +59,13 @@ $app->post('/users', function ($request, $response) use ($usersStorage) {
     return $this->get('renderer')->render($response->withStatus(422), '/users/new.phtml', $params);
 })->setName('toUsersAfterCreate');
 
-$app->get('/users/{id}', function ($request, $response, $args) use ($usersStorage) {
+$app->get('/users/{id:[0-9]+}', function ($request, $response, $args) use ($usersStorage) {
     $users = $usersStorage->getUsers();
-    // Валидируем idшник в URI
-    foreach ($users as $user) {
-        $ids[] = array_key_exists('id', $user) ? $user['id'] : false;
-    }
-    if (!in_array((int) $args['id'], $ids, true)) {
-        $response->getBody()->write('This user not created yet :(');
+    $id = (int) $args['id'];
+    
+    //Проверяем id на существование
+    if ($id > count($users) || $id <= 0) {
+        $response->getBody()->write('The page does not exist');
         return $response->withStatus(404);
     }
 
@@ -81,7 +80,7 @@ $app->get('/users/{id}', function ($request, $response, $args) use ($usersStorag
     
     $flash = $this->get('flash')->getMessages();
     $params = [
-    'id' => $args['id'],
+    'id' => $id,
     'nickname' => $currentUserName,
     'flash' => $flash
     ];
