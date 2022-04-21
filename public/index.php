@@ -119,7 +119,7 @@ $app->get('/courses/{id}', function ($request, $response, array $args) {
     return $response;
 })->setName('courses');
 
-$app->get('/users/{id}/edit', function ($request, $response, array $args) use ($usersStorage) {
+$app->get('/users/{id:[0-9]+}/edit', function ($request, $response, array $args) use ($usersStorage) {
     $id = (int) $args['id'];
     $users = $usersStorage->getUsers();
     if ($id > count($users)) {
