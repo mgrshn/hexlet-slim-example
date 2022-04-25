@@ -10,4 +10,3 @@ class IdGenerator
         return isset($users) ? count($users) + 1 : 1;
     }
 }
-

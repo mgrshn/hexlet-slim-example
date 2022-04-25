@@ -15,7 +15,15 @@
 
 
 <?php foreach($users as $user): ?>
-    <div><a href="/users/<?=$user['id']?>"><?= htmlspecialchars($user['name']) ?></a></div>
+    <div>
+        <?php if (!isset($user['deleted'])): ?>
+        <a href="/users/<?= $user['id'] ?>"><?= htmlspecialchars($user['name']) ?></a> 
+        <form action="/users/<?= $user['id'] ?>" method="post">
+        <input type="hidden" name="_METHOD" value="DELETE">
+        <input type="submit" value="Remove">
+        </form>
+        <?php endif ?>
+    </div>
 <?php endforeach ?>
 
 

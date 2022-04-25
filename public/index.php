@@ -21,8 +21,8 @@ $container->set('flash', function() {
 });
 
 $app = AppFactory::createFromContainer($container);
-$app->addErrorMiddleware(true, true, true);
 $app->add(MethodOverrideMiddleware::class);
+$app->addErrorMiddleware(true, true, true);
 
 $usersStorage = new Storage();
 
@@ -64,11 +64,15 @@ $app->get('/users/{id:[0-9]+}', function ($request, $response, $args) use ($user
     $id = (int) $args['id'];
     
     //Проверяем id на существование
-    if ($id > count($users) || $id <= 0) {
+    if ($id <= 0) {
         $response->getBody()->write('The page does not exist');
         return $response->withStatus(404);
     }
-
+    //Проверяем, удален ли пользователь
+    if (isset($users['user' . (string) $id]['deleted'])) {
+        $response->getBody()->write('User was deleted<br><a href="/users">To all users</a> ');
+        return $response->withStatus(404);
+    }
     //Получаем имя текущего пользователя.
     foreach ($users as $user) {
         if ((int) $args['id'] === $user['id']) {
@@ -126,6 +130,11 @@ $app->get('/users/{id:[0-9]+}/edit', function ($request, $response, array $args)
         $response->getBody()->write('This user not created yet :(');
         return $response->withStatus(404);
     }
+    //Проверяем, удален ли пользователь
+    if (isset($users['user' . (string) $id]['deleted'])) {
+        $response->getBody()->write('User was deleted<br><a href="/users">To all users</a> ');
+        return $response->withStatus(404);
+    }
     foreach ($users as $userProps) {
         if ($userProps['id'] === $id) {
             $user = $userProps;
@@ -140,6 +149,8 @@ $app->get('/users/{id:[0-9]+}/edit', function ($request, $response, array $args)
 
     return $this->get('renderer')->render($response, '/users/edit.phtml', $params);
 })->setName('editUser');
+
+
 
 $app->patch('/users/{id}', function ($request, $response, array $args) use ($usersStorage, $router) {
     $id = (int) $args['id'];
@@ -164,6 +175,14 @@ $app->patch('/users/{id}', function ($request, $response, array $args) use ($use
         'errors' => $errors
     ];
     return $this->get('renderer')->render($response->withStatus(422), '/users/edit.phtml', $params);
+});
+
+
+$app->delete('/users/{id:[0-9]+}', function ($request, $response, array $args) use ($usersStorage, $router) {
+    $id = $args['id'];
+    $usersStorage->deleteUser($id);
+    $this->get('flash')->addMessage('success', 'User has been deleted');
+    return $response->withStatus(302)->withHeader('Location', '/users');
 });
 
 $app->run();

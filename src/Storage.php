@@ -49,6 +49,14 @@ class Storage
         $this->storageData = $users;
         file_put_contents(__DIR__ . '/../storage/users.json', json_encode($this->storageData));
     }
+
+    public function deleteUser(string $userId) 
+    {
+        $users = $this->getUsers();
+        $users['user' . $userId]['deleted'] = true;
+        $this->storageData = $users;
+        file_put_contents(__DIR__ . '/../storage/users.json', json_encode($this->storageData));
+    }
 }
 
 
